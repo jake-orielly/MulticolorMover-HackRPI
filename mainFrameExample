@@ -1,0 +1,43 @@
+package redblueGame;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import javax.swing.JFrame;
+
+
+public class mainFrameExample extends JFrame implements KeyListener{
+
+    public void keyPressed(KeyEvent e) {
+        System.out.println("keyPressed");
+    }
+
+    public void keyReleased(KeyEvent e) {
+        
+
+    }
+    public void keyTyped(KeyEvent e) {
+        System.out.println("keyTyped");
+    }
+
+    public mainFrameExample(){
+        addKeyListener(this);
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
+    }
+
+    public static void main(String[] args) {
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                mainFrameExample frame = new mainFrameExample();
+                frame.setTitle("Square Move Practice");
+                frame.setResizable(false);
+                frame.setSize(600, 600);
+                frame.setMinimumSize(new Dimension(600, 600));
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.pack();
+                frame.setVisible(true);
+            }
+        });
+    }
+}
