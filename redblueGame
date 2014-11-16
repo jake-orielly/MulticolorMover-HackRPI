@@ -1,0 +1,233 @@
+package redblueGame;
+
+import java.util.Random;
+
+public class redblueBoard {
+	
+	int[][] board;
+	int[][] redPlayerBoard;
+	int[][] bluePlayerBoard;
+	int boardRows = 8;
+	int boardColumns = 6;
+	int[] toMove;
+	int[] bag;
+	int generateCount = 0;
+	int pointcount = 0;
+	final static int size = 6;
+	
+	Random rand = new Random();
+
+    int randomNum;
+    
+    public redblueBoard()
+    {
+    	shuffle();
+    	
+    	board = new int[boardRows][boardColumns];
+    	
+    	for (int i = 0; i < boardRows; i++)
+    	{
+    		for (int j = 0; j < boardColumns; j++)
+    		{
+        		board[i][j] = pieceGenerate();
+    		}
+    	}
+    	
+    	board [boardRows-1][boardColumns-1] = 3;
+    	board [boardRows-2][boardColumns-1] = 3;
+    	board [boardRows-1][boardColumns-2] = 3;
+    	board [boardRows-1][0] = 2;
+    	board [boardRows-2][0] = 2;
+    	board [boardRows-1][1] = 2;
+    	
+    	redPlayerBoard = new int[boardRows][boardColumns];
+    	bluePlayerBoard = new int[boardRows][boardColumns];
+    	
+    	for (int i = 0; i < boardRows; i++)
+    	{
+    		for (int j = 0; j < boardColumns; j++)
+    		{
+        		redPlayerBoard[i][j] = 0;
+        		bluePlayerBoard[i][j] = 0;
+    		}
+    	}
+   
+    	redPlayerBoard [boardRows-1][boardColumns-1] = 3;
+    	bluePlayerBoard [boardRows-1][0] = 2;
+    }
+    
+    public void shuffle()				//shuffles the 7bag (think how tetris works)
+    {
+    	int[] temp = new int[]{0,1,2,3,4,5,6};
+    	int[] result = new int[7];
+    	
+    	for (int i = 0; i < 6; i++)
+    	{
+    		randomNum = rand.nextInt(7-i); //generate a new random int 
+    		result[i] = temp[randomNum]; //change the ith element of our result array to the randomNum index
+    		temp[randomNum] = temp[6-i]; //change the randomNum index to equal the last element
+    		temp = cutArray(temp); //cuts off the last element of the array
+    	}
+    	
+    	bag = result;
+    }
+    
+    
+    public int[] cutArray(int[] given)
+    {
+    	int[] temp = new int[given.length-1];
+    	
+    	for (int i = 0; i < temp.length; i++)
+    	{
+    		temp[i] = given[i];
+    	}
+    	return temp;
+    }
+    
+    public int pieceColor(int i)			//determines color of the piece
+    {
+    	if (i == 0 || i == 1)
+    		return 2;						//red
+    	else if (i == 2 || i == 3)
+    		return 3;						//blue
+    	else if (i == 5)
+    		return 6;						//purple
+    	else 
+    		return 5;						//yellow
+    }
+    
+    public int pieceGenerate()				//procedurally generates new pieces
+    {
+    	if (generateCount > bag.length-1)
+    	{
+    		shuffle();
+    		generateCount = 0;
+    	}
+    	
+    	int temp = bag[generateCount];
+    	generateCount++;
+    	return pieceColor(temp);
+    }
+    
+    public void pieceDestroy(int row, int column)		//destroys current piece and increments score
+    {
+    	for (int i = row; i > 0; i--)
+    	{
+    		board[i][column] = board[i-1][column];
+    	}
+    	
+    	board[0][column] = pieceGenerate();
+    	pointcount++;
+    }
+    
+    public void rowDestroy (int row)		//destroys current row by calling pieceDestroy, gives +2 points overall
+    {
+    	for (int i = board[0].length-1; i >= 0; i--)
+    		pieceDestroy(row+1, i);			
+    }										
+    
+    public void printBoard()				
+    {
+    	for (int i = 0; i < boardRows; i++)
+    	{
+    		for (int j = 0; j < boardColumns; j++)
+    		{
+    			if (redPlayerBoard[i][j] == 0 && bluePlayerBoard[i][j] == 0)				//no PC case
+    				System.out.print(board[i][j] + " ");
+    			else 
+    				if(bluePlayerBoard[i][j]==2){			//red PC
+    					System.out.print("R ");
+    				} else if(redPlayerBoard[i][j]==3){	//blue PC
+    					System.out.print("B ");
+    				}
+    			
+    		}
+    		System.out.println(" ");
+    	}
+    	System.out.println("------------");
+    }
+    
+    public boolean isValid(int playerNum, int destRow, int destColumn, int orRow, int orColumn)
+    {
+    	if (((orRow==destRow-1||orRow==destRow+1)&& orColumn == destColumn) ||((orColumn==destColumn-1||orColumn==destColumn+1)&& orRow == destRow)){
+        	if (destRow < 0 || destColumn < 0 || destRow >= boardRows || destColumn >= boardColumns)
+        		//state out of bounds error
+        		return false;													//if out of bounds
+        	else if (board[destRow][destColumn] % playerNum != 0)					//if the space is not of the right color
+    			//state that it's a color mismatch
+        		return false;
+        	
+        	return true;
+    	}
+    	return false;
+    }
+    
+    public void makeMove(int player, int destRow, int destColumn)
+    {
+    	int orRow = findRow(player);
+    	int orColumn = findColumn(player);
+    	if (orRow == -1 || orColumn == -1){
+    		//LETHAL BUG WTF THIS SHOULDN'T HAPPEN BUT JAVA IS BEING A DUMBS AND TELLING ME IT CAN'T FIND THINGS
+    	}
+    	if (isValid(player, destRow, destColumn, orRow, orColumn))
+    	{
+    		if (player == 2)
+    		{
+    			bluePlayerBoard[orRow][orColumn]=0;
+    			bluePlayerBoard[destRow][destColumn]=player;
+    		}
+    		
+    		else if (player == 3)
+    		{
+    			redPlayerBoard[orRow][orColumn]=0;
+    			redPlayerBoard[destRow][destColumn]=player;
+    		}
+    		pieceDestroy(destRow, destColumn);
+    	}
+    	
+    }
+    public int findRow(int player){
+    	for (int i = 0; i < boardRows; i++){
+    		for (int j = 0; j < boardColumns; j++){
+    			if (redPlayerBoard[i][j]==player || bluePlayerBoard[i][j]==player){
+    				return i;
+    			}
+    		}
+    	}
+    	return -1;
+    }
+    public int findColumn(int player){
+    	for (int i = 0; i < boardRows; i++){
+    		for (int j = 0; j < boardColumns; j++){
+    			if (redPlayerBoard[i][j]==player || bluePlayerBoard[i][j]==player){
+    				return j;
+    			}
+    		}
+    	}
+    	return -1;
+    }
+    public void update(){			//tests to see if there are any rows of all yellow pieces, and if there are destroys the row
+    	for (int i = 0; i < boardRows; i++){
+    		boolean temp = true;
+    		for (int j = 0; j < boardColumns; j++){
+    			if (board[i][j]!=5){
+    				temp = false;
+    				break;
+    			}
+    		}
+    		if (temp){	//only occurs if all the values in one row are equal to 5 (yellow)
+    			rowDestroy(i);
+    		}
+    	}
+    }
+    
+    public int[][] getBoard()
+    {
+    	return board;
+    }
+    
+    public int getScore()
+    {
+    	return pointcount;
+    }
+}
